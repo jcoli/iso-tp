@@ -47,7 +47,7 @@ uint8_t IsoTp::can_receive(void)
   if (msgReceived)
   {
      memset(rxBuffer,0,sizeof(rxBuffer));       // Cleanup Buffer
-     _bus->readMsgBuf(&rxId, &rxLen, rxBuffer); // Read data: buf = data byte(s)
+     _bus->readMsgBufID(&rxId, &rxLen, rxBuffer); // Read data: buf = data byte(s)
 #ifdef ISO_TP_DEBUG
      Serial.println(F("Received CAN RAW Data:"));
      print_buffer(rxId, rxBuffer, rxLen);
@@ -115,6 +115,9 @@ void IsoTp::fc_delay(uint8_t sep_time)
 
 uint8_t IsoTp::rcv_sf(struct Message_t* msg)
 {
+#ifdef ISO_TP_DEBUG
+    Serial.println("Single Frame");
+#endif
   /* get the SF_DL from the N_PCI byte */
   msg->len = rxBuffer[0] & 0x0F;
   /* copy the received data bytes */
@@ -432,12 +435,17 @@ uint8_t IsoTp::receive(Message_t* msg)
   Serial.println(F("Start receive..."));
 #endif
   msg->tp_state=ISOTP_IDLE;
+ #ifdef ISO_TP_DEBUG 
+    Serial.print(F("tp_state = "));
+    Serial.println(msg->tp_state);
+ #endif  
 
   while(msg->tp_state!=ISOTP_FINISHED && msg->tp_state!=ISOTP_ERROR)
   {
+ 
     delta=millis()-wait_session;
     if(delta >= TIMEOUT_SESSION)
-    {
+  {
 #ifdef ISO_TP_DEBUG
       Serial.print(F("ISO-TP Session timeout wait_session="));
       Serial.print(wait_session); Serial.print(F(" delta="));
@@ -448,6 +456,18 @@ uint8_t IsoTp::receive(Message_t* msg)
 
     if(can_receive())
     {
+#ifdef ISO_TP_DEBUG
+      Serial.println("Can_receive");
+#endif
+      if((n_pci_type==N_PCI_SF) or (n_pci_type==N_PCI_FF)){
+#ifdef ISO_TP_DEBUG
+      Serial.println("n_pci_type==N_PCI_SF");
+      Serial.println("n_pci_type==N_PCI_FF");  
+       
+#endif
+      rxId=msg->rx_id; 
+     }   
+  
       if(rxId==msg->rx_id)
       {
 #ifdef ISO_TP_DEBUG
@@ -471,7 +491,7 @@ uint8_t IsoTp::receive(Message_t* msg)
 #endif
                       /* rx path: single frame */
                       rcv_sf(msg);
-//		      msg->tp_state=ISOTP_FINISHED;
+		      msg->tp_state=ISOTP_FINISHED;
                       break;
 
           case N_PCI_FF:
