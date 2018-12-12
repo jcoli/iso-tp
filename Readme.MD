@@ -1,8 +1,10 @@
+Forked from altelch/iso-tp
+
 ISO 15765-2 ISO-TP protocol implementation for Arduino
 
 This implementation requires MCP_CAN_lib from
 
-https://github.com/coryjfowler/MCP_CAN_lib with debug output disabled.
+hhttps://github.com/Seeed-Studio/CAN_BUS_Shield with debug output disabled.
 
 Currently implemented:
 
@@ -20,4 +22,4 @@ Currently implemented:
 * some error handling
 * simple frame padding with 0x00
 
-See usage example in example/send_receive/send_receive.ino
+See usage example in example/send_receive/send_receive.ino and example/test_send_isotp-rec-dtc.ino
